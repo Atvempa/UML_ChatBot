@@ -80,7 +80,9 @@ def chat():
     messages.append(AIMessage(content=res.content))
     return jsonify({'response': res.content})
 
-    
+
+if __name__ == '__main__':
+    app.run(debug=True)
 # def run_app():
 #     app.run(debug=True, port=5010, use_reloader=False)
 
