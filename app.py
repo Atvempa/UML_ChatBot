@@ -1,4 +1,4 @@
-!pip3 install chromadb==0.5.0
+#!pip3 install chromadb==0.5.0
 import os
 import nest_asyncio
 import threading
