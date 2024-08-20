@@ -52,16 +52,33 @@ def chat():
     query_text = data.get('query')
     
     uri = "mongodb+srv://umlbot:Boston123@cluster0.mlwhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+    def create_vector_search():
+        vector_search = MongoDBAtlasVectorSearch.from_connection_string(
+            uri,
+            namespace="UML_ChatBot.demo-db",
+            embedding= OpenAIEmbeddings(),
+            index_name="vector_index"
+        )
+        return vector_search
     
-    # Create a new client and connect to the server
-    client = MongoClient(uri)
+    vector_search = create_vector_search()
+    query = 'pantry'
+    # Execute the similarity search with the given query
+    results = vector_search.similarity_search_with_score(
+        query=query,
+        k=3,
+    )
+    query_text = results[0][0].page_content
+    # # Create a new client and connect to the server
+    # client = MongoClient(uri)
     
-    # Send a ping to confirm a successful connection
-    try:
-        client.admin.command('ping')
-        query_text = "Pinged your deployment. You successfully connected to MongoDB!"
-    except Exception as e:
-        query_text = e
+    # # Send a ping to confirm a successful connection
+    # try:
+    #     client.admin.command('ping')
+    #     query_text = "Pinged your deployment. You successfully connected to MongoDB!"
+    # except Exception as e:
+    #     query_text = e
 
     # # Prepare the DB.
     # embedding_function = OpenAIEmbeddings()
