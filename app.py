@@ -50,45 +50,46 @@ def chat():
     data = request.json
     query_text = data.get('query')
 
-    # Prepare the DB.
-    embedding_function = OpenAIEmbeddings()
-    #db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    # # Prepare the DB.
+    # embedding_function = OpenAIEmbeddings()
+    # #db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
-    model = ChatOpenAI()
-    q.append(query_text)
-    c[0]+=1
-    if c[0]==5:
-        q.pop(0)
-        c[0]-=1
+    # model = ChatOpenAI()
+    # q.append(query_text)
+    # c[0]+=1
+    # if c[0]==5:
+    #     q.pop(0)
+    #     c[0]-=1
     
-    q_text = ' '.join(q)
+    # q_text = ' '.join(q)
 
-    # # Search the DB.
-    #results = db.similarity_search_with_relevance_scores(q_text, k=10)
-    vector_search = MongoDBAtlasVectorSearch.from_connection_string(
-        mongo_uri,
-        namespace="UML_ChatBot.demo-db",
-        embedding= OpenAIEmbeddings(),
-        index_name="vector_index"
-    )
-    results = vector_search.similarity_search_with_score(query=q_text, k=10)
+    # # # Search the DB.
+    # #results = db.similarity_search_with_relevance_scores(q_text, k=10)
+    # vector_search = MongoDBAtlasVectorSearch.from_connection_string(
+    #     mongo_uri,
+    #     namespace="UML_ChatBot.demo-db",
+    #     embedding= OpenAIEmbeddings(),
+    #     index_name="vector_index"
+    # )
+    # results = vector_search.similarity_search_with_score(query=q_text, k=10)
     
-    context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
-    if len(results) == 0 or results[0][1] < 0.65:
-        context_text = ""
-        #print('hello')
-    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    prompt = prompt_template.format(context=context_text)
+    # context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+    # if len(results) == 0 or results[0][1] < 0.65:
+    #     context_text = ""
+    #     #print('hello')
+    # prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+    # prompt = prompt_template.format(context=context_text)
 
-    if messages == []:
-        messages.append(SystemMessage(content=prompt))
+    # if messages == []:
+    #     messages.append(SystemMessage(content=prompt))
 
-    messages[0]=SystemMessage(content=prompt)
-    messages.append(HumanMessage(content=query_text))
+    # messages[0]=SystemMessage(content=prompt)
+    # messages.append(HumanMessage(content=query_text))
 
-    res = model.invoke(messages)
-    messages.append(AIMessage(content=res.content))
-    return jsonify({'response': res.content})
+    # res = model.invoke(messages)
+    # messages.append(AIMessage(content=res.content))
+    # return jsonify({'response': res.content})
+    return query
 
 
 if __name__ == '__main__':
