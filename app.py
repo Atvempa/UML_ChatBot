@@ -4,7 +4,8 @@ import nest_asyncio
 import threading
 from flask import Flask, request, jsonify, render_template
 import argparse
-from langchain_community.vectorstores import Chroma
+#from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import MongoDBAtlasVectorSearch
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
@@ -15,6 +16,7 @@ from langchain.schema import (
 )
 
 openapi_key = os.getenv('OPENAI_API_KEY')
+mongo_uri = os.getenv('MONGO_URI')
 
 nest_asyncio.apply()
 
@@ -50,7 +52,7 @@ def chat():
 
     # Prepare the DB.
     embedding_function = OpenAIEmbeddings()
-    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+    #db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     model = ChatOpenAI()
     q.append(query_text)
@@ -62,8 +64,15 @@ def chat():
     q_text = ' '.join(q)
 
     # # Search the DB.
-    results = db.similarity_search_with_relevance_scores(q_text, k=10)
-
+    #results = db.similarity_search_with_relevance_scores(q_text, k=10)
+    vector_search = MongoDBAtlasVectorSearch.from_connection_string(
+        mongo_uri,
+        namespace="UML_ChatBot.demo-db",
+        embedding= OpenAIEmbeddings(),
+        index_name="vector_index"
+    )
+    results = vector_search.similarity_search_with_score(query=q_text, k=10)
+    
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     if len(results) == 0 or results[0][1] < 0.65:
         context_text = ""
