@@ -89,7 +89,7 @@ def chat():
     # res = model.invoke(messages)
     # messages.append(AIMessage(content=res.content))
     # return jsonify({'response': res.content})
-    return query
+    return jsonify({'response': query})
 
 
 if __name__ == '__main__':
