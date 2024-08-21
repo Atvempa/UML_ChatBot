@@ -99,7 +99,7 @@ def chat():
     # )
     # results = vector_search.similarity_search_with_score(query=q_text, k=10)
     results = vector_search.similarity_search_with_score(
-        query=query,
+        query=q_text,
         k=10,
     )
     
