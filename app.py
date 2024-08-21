@@ -65,7 +65,7 @@ def chat():
             {"role": "assistant", "content": "{\n\"response\": \"I'm here to provide information specifically related to the University of Massachusetts, Lowell. Unfortunately, I do not have information on general knowledge questions. Is there anything else I can assist you with regarding UMass Lowell?\",\n\"code\": \"4321\"\n}"},
             {"role": "user", "content": "I want to report issue"},
             {"role": "assistant", "content": "{\n\"response\": \"Sure, I can help with that. Please provide me with the following details in the mentioned format:  \
-        <name>, <UID>, <description of issue>. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
+        `name`, `UID`, `description of issue`. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
             {"role": "user", "content": "details: ak, 23, Want to raise a request for change of my last name"},
             {"role": "assistant", "content": "{\n\"response\": \"{\n\"name\": \"ak\",\n\"UID\" : \"23\",\n\"description\": \"Want to raise a request for change of my last name\"\n}\",\n\"code\": \"1235\"\n}"}
         ]
@@ -82,7 +82,7 @@ def chat():
         context : ```{context}```
         
         To report an issue, request the student to provide information in the following format:
-        ##<name>, <UID>, <description of issue>##
+        ##`name`, `UID`, `description of issue`##
         For example:
         ##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
         If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
@@ -98,7 +98,7 @@ def chat():
         ###{chat_example}###
         """
     
-        answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
+        answer_ = "{\n'name': `name`,\n'UID' : `UID`,\n'description': `description`\n}"
         
         normal_response = "{\n\"response\": <answer>,\n\"code\": <code>\n}"
         
@@ -126,7 +126,7 @@ def chat():
             
         prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
         prompt = prompt_template.format(context=context_text, normal_response=normal_response, answer_=answer_, chat_example=chat_example)[8:]
-        print(prompt)
+        #print(prompt)
         if messages == []:
             messages.append({'role':'system', 'content':f"{prompt}"})
     
@@ -146,10 +146,10 @@ def chat():
             res['response'] = NOT_FOUND_RESPONSE
         if res['code']=="1235":
             #print(res['response'])
-            res['response'] = "Case created with ID: 12345678" + res['response']
+            res['response'] = "Case created with ID: 12345678" + json.dumps(res['response'])
     
         response = res['response']
-        print(res)
+        #print(res)
         res = json.dumps(res)
         messages.append({'role':'assistant', 'content':f"{res}"})
         return jsonify({'response': response})
