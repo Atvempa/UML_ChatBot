@@ -69,7 +69,7 @@ def chat():
         query=query,
         k=3,
     )
-    query_text = results[0][0].page_content
+    # query_text = results[0][0].page_content
     # # Create a new client and connect to the server
     # client = MongoClient(uri)
     
@@ -107,19 +107,19 @@ def chat():
     # if len(results) == 0 or results[0][1] < 0.65:
     #     context_text = ""
     #     #print('hello')
-    # prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    # prompt = prompt_template.format(context=context_text)
+    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+    prompt = prompt_template.format(context=context_text)
 
-    # if messages == []:
-    #     messages.append(SystemMessage(content=prompt))
+    if messages == []:
+        messages.append(SystemMessage(content=prompt))
 
-    # messages[0]=SystemMessage(content=prompt)
-    # messages.append(HumanMessage(content=query_text))
+    messages[0]=SystemMessage(content=prompt)
+    messages.append(HumanMessage(content=query_text))
 
-    # res = model.invoke(messages)
-    # messages.append(AIMessage(content=res.content))
-    # return jsonify({'response': res.content})
-    return jsonify({'response': context_text})
+    res = model.invoke(messages)
+    messages.append(AIMessage(content=res.content))
+    return jsonify({'response': res.content})
+    # return jsonify({'response': context_text})
 
 
 if __name__ == '__main__':
