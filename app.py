@@ -103,7 +103,7 @@ def chat():
     # )
     # results = vector_search.similarity_search_with_score(query=q_text, k=10)
     
-    # context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+    context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     # if len(results) == 0 or results[0][1] < 0.65:
     #     context_text = ""
     #     #print('hello')
@@ -119,7 +119,7 @@ def chat():
     # res = model.invoke(messages)
     # messages.append(AIMessage(content=res.content))
     # return jsonify({'response': res.content})
-    return jsonify({'response': query_text})
+    return jsonify({'response': context_text})
 
 
 if __name__ == '__main__':
