@@ -1,20 +1,16 @@
-#!pip3 install chromadb==0.5.0
 import os
+import json
 import nest_asyncio
 import threading
+from openai import OpenAI
 from flask import Flask, request, jsonify, render_template
 import argparse
-#from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores import MongoDBAtlasVectorSearch
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from pymongo.mongo_client import MongoClient
-from langchain.schema import (
-    SystemMessage,
-    HumanMessage,
-    AIMessage
-)
+
 
 openapi_key = os.getenv('OPENAI_API_KEY')
 mongo_uri = os.getenv('MONGO_URI')
@@ -23,18 +19,78 @@ nest_asyncio.apply()
 
 app = Flask(__name__)
 
-CHROMA_PATH = "chroma"
+chat_example = '''
+[
+    {"role": "system", "content": "You are a helpful assistant designed to provide information related to the University of Massachusetts, Lowell."},
+    {"role": "user", "content": "Hi"},
+    {"role": "assistant", "content": "{\n\"response\": \"Hello! How can I assist you today?\",\n\"code\": \"1234\"\n}"},
+    {"role": "user", "content": "pantry?"},
+    {"role": "assistant", "content": "{\n\"response\": \"The main Strive Pantry is located at the Graduate Professional Studies Center! Visitors to the pantry should stop by the information desk on the first floor, where they will be greeted by staff and escorted to the pantry.\",\n\"code\": \"1234\"\n}"},
+    {"role": "user", "content": "timings?"},
+    {"role": "assistant", "content": "{\n\"response\": \"The pantry will re-open for the summer on Wednesday, May 29. The summer hours are: Mondays: 11 a.m. – 4:30 p.m., Wednesdays: 11:30 a.m. – 2:30 p.m., Fridays: 1–4 p.m.\",\n\"code\": \"1234\"\n}"},
+    {"role": "user", "content": "Capital of USA?"},
+    {"role": "assistant", "content": "{\n\"response\": \"I'm here to provide information specifically related to the University of Massachusetts, Lowell. Unfortunately, I do not have information on general knowledge questions. Is there anything else I can assist you with regarding UMass Lowell?\",\n\"code\": \"4321\"\n}"},
+    {"role": "user", "content": "I want to report issue"},
+    {"role": "assistant", "content": "{\n\"response\": \"Sure, I can help with that. Please provide me with the following details in the mentioned format:  \
+<name>, <UID>, <description of issue>. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
+    {"role": "user", "content": "details: ak, 23, Want to raise a request for change of my last name"},
+    {"role": "assistant", "content": "{\n\"response\": \"{\n\"name\": \"ak\",\n\"UID\" : \"23\",\n\"description\": \"Want to raise a request for change of my last name\"\n}\",\n\"code\": \"1235\"\n}"}
+]
+'''
+
+NOT_FOUND_RESPONSE = "I'm sorry, I don't have enough sources to answer that question. My role is to provide information related to University of Massachusetts, Lowell. Is there anything else I can help you with?"
 
 PROMPT_TEMPLATE = """
 You are a AI chatbot. Your role is to build conversation with student and give good responses.
 If you are not confident on any question. Let student know that you don't have that information.
-Use the below context to complete the conversation. If the context is empty string or the answer to question is not present in
-context then let the student know that you don't have enough sources to answer his question and also remind him you are an 
-AI chatbot whose role is to answer the questions only related to University of Massachusetts, Lowell. Strictly look for answer only in context
-Context is the text between ``` below
+Use the below context to complete the conversation. Strictly look for answer only in context
+Try extracting maximum outcome from context
+Context is the text between `````` below
 context : ```{context}```
 
+To report an issue, request the student to provide information in the following format:
+##<name>, <UID>, <description of issue>##
+For example:
+##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
+If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
+
+Response formatting:
+If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
+else IF student provided all the details as mentioned in above example delimited by ##, then the <answer> must be {answer_} and attach code '1235'
+else attach code `4321`
+Format your responses as a JSON object in the following format:
+{normal_response}
+
+Find example conversation below in between ###### as reference:
+###{chat_example}###
 """
+
+answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
+    
+normal_response = "{\n\"response\": <answer>,\n\"code\": <code>\n}"
+
+issue_response = "{\n\"response\": {\n\"name\": <name>,\n\"UID\": <UID>,\n\"description\": <description>\n},\n\"code\": \"1235\"\n}"
+
+
+def get_completion_from_messages(messages, model="gpt-3.5-turbo", temperature=0):
+    client = OpenAI(
+        api_key=openapi_key,
+    )
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        #temperature=temperature, # this is the degree of randomness of the model's output
+    )
+    return response.choices[0].message.content
+
+def create_vector_search():
+    vector_search = MongoDBAtlasVectorSearch.from_connection_string(
+        mongo_uri,
+        namespace="UML_ChatBot.demo-db",
+        embedding= OpenAIEmbeddings(),
+        index_name="vector_index"
+    )
+    return vector_search
 
 messages = []
 
@@ -51,35 +107,8 @@ def chat():
     data = request.json
     query_text = data.get('query')
     
-    #uri = "mongodb+srv://umlbot:Boston123@cluster0.mlwhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-
-    def create_vector_search():
-        vector_search = MongoDBAtlasVectorSearch.from_connection_string(
-            mongo_uri,
-            namespace="UML_ChatBot.demo-db",
-            embedding= OpenAIEmbeddings(),
-            index_name="vector_index"
-        )
-        return vector_search
-    
     vector_search = create_vector_search()
-    # Execute the similarity search with the given query
     
-    # query_text = results[0][0].page_content
-    # # Create a new client and connect to the server
-    # client = MongoClient(uri)
-    
-    # # Send a ping to confirm a successful connection
-    # try:
-    #     client.admin.command('ping')
-    #     query_text = "Pinged your deployment. You successfully connected to MongoDB!"
-    # except Exception as e:
-    #     query_text = e
-
-    # # Prepare the DB.
-    # embedding_function = OpenAIEmbeddings()
-    # #db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
-
     model = ChatOpenAI()
     q.append(query_text)
     c[0]+=1
@@ -89,15 +118,6 @@ def chat():
     
     q_text = ' '.join(q)
 
-    # # # Search the DB.
-    # #results = db.similarity_search_with_relevance_scores(q_text, k=10)
-    # vector_search = MongoDBAtlasVectorSearch.from_connection_string(
-    #     mongo_uri,
-    #     namespace="UML_ChatBot.demo-db",
-    #     embedding= OpenAIEmbeddings(),
-    #     index_name="vector_index"
-    # )
-    # results = vector_search.similarity_search_with_score(query=q_text, k=10)
     results = vector_search.similarity_search_with_score(
         query=q_text,
         k=10,
@@ -106,26 +126,37 @@ def chat():
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     # if len(results) == 0 or results[0][1] < 0.65:
     #     context_text = ""
-    #     #print('hello')
+        
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    prompt = prompt_template.format(context=context_text)
-
+    prompt = prompt_template.format(context=context_text, normal_response=normal_response, answer_=answer_, chat_example=chat_example)[8:]
+    
     if messages == []:
-        messages.append(SystemMessage(content=prompt))
+        messages.append({'role':'system', 'content':f"{prompt}"})
 
-    messages[0]=SystemMessage(content=prompt)
-    messages.append(HumanMessage(content=query_text))
+    messages[0]={'role':'system', 'content':f"{prompt}"}
+    messages.append({'role':'user', 'content':f"{query_text}"})
 
-    res = model.invoke(messages)
-    messages.append(AIMessage(content=res.content))
+    try:
+        res1 = get_completion_from_messages(messages)
+        res = json.loads(res1)
+    except:
+        messages.pop(-1)
+        q.pop(-1)
+        main(query_text)
+        return
+    
+    if res['code']=="4321":
+        #print('error....................')
+        res['response'] = NOT_FOUND_RESPONSE
+    if res['code']=="1235":
+        #print(res['response'])
+        res['response'] = "Case created with ID: 12345678" + res['response']
+
+    response = res['response']
+    res = json.dumps(res)
+    messages.append({'role':'assistant', 'content':f"{res}"})
     return jsonify({'response': res.content})
-    # return jsonify({'response': context_text})
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-# def run_app():
-#     app.run(debug=True, port=5010, use_reloader=False)
-
-# thread = threading.Thread(target=run_app)
-# thread.start()
