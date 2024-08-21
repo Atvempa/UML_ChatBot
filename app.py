@@ -51,112 +51,112 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-
-    chat_example = '''
-    [
-        {"role": "system", "content": "You are a helpful assistant designed to provide information related to the University of Massachusetts, Lowell."},
-        {"role": "user", "content": "Hi"},
-        {"role": "assistant", "content": "{\n\"response\": \"Hello! How can I assist you today?\",\n\"code\": \"1234\"\n}"},
-        {"role": "user", "content": "pantry?"},
-        {"role": "assistant", "content": "{\n\"response\": \"The main Strive Pantry is located at the Graduate Professional Studies Center! Visitors to the pantry should stop by the information desk on the first floor, where they will be greeted by staff and escorted to the pantry.\",\n\"code\": \"1234\"\n}"},
-        {"role": "user", "content": "timings?"},
-        {"role": "assistant", "content": "{\n\"response\": \"The pantry will re-open for the summer on Wednesday, May 29. The summer hours are: Mondays: 11 a.m. – 4:30 p.m., Wednesdays: 11:30 a.m. – 2:30 p.m., Fridays: 1–4 p.m.\",\n\"code\": \"1234\"\n}"},
-        {"role": "user", "content": "Capital of USA?"},
-        {"role": "assistant", "content": "{\n\"response\": \"I'm here to provide information specifically related to the University of Massachusetts, Lowell. Unfortunately, I do not have information on general knowledge questions. Is there anything else I can assist you with regarding UMass Lowell?\",\n\"code\": \"4321\"\n}"},
-        {"role": "user", "content": "I want to report issue"},
-        {"role": "assistant", "content": "{\n\"response\": \"Sure, I can help with that. Please provide me with the following details in the mentioned format:  \
-    <name>, <UID>, <description of issue>. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
-        {"role": "user", "content": "details: ak, 23, Want to raise a request for change of my last name"},
-        {"role": "assistant", "content": "{\n\"response\": \"{\n\"name\": \"ak\",\n\"UID\" : \"23\",\n\"description\": \"Want to raise a request for change of my last name\"\n}\",\n\"code\": \"1235\"\n}"}
-    ]
-    '''
+    def main(query_text):
+        chat_example = '''
+        [
+            {"role": "system", "content": "You are a helpful assistant designed to provide information related to the University of Massachusetts, Lowell."},
+            {"role": "user", "content": "Hi"},
+            {"role": "assistant", "content": "{\n\"response\": \"Hello! How can I assist you today?\",\n\"code\": \"1234\"\n}"},
+            {"role": "user", "content": "pantry?"},
+            {"role": "assistant", "content": "{\n\"response\": \"The main Strive Pantry is located at the Graduate Professional Studies Center! Visitors to the pantry should stop by the information desk on the first floor, where they will be greeted by staff and escorted to the pantry.\",\n\"code\": \"1234\"\n}"},
+            {"role": "user", "content": "timings?"},
+            {"role": "assistant", "content": "{\n\"response\": \"The pantry will re-open for the summer on Wednesday, May 29. The summer hours are: Mondays: 11 a.m. – 4:30 p.m., Wednesdays: 11:30 a.m. – 2:30 p.m., Fridays: 1–4 p.m.\",\n\"code\": \"1234\"\n}"},
+            {"role": "user", "content": "Capital of USA?"},
+            {"role": "assistant", "content": "{\n\"response\": \"I'm here to provide information specifically related to the University of Massachusetts, Lowell. Unfortunately, I do not have information on general knowledge questions. Is there anything else I can assist you with regarding UMass Lowell?\",\n\"code\": \"4321\"\n}"},
+            {"role": "user", "content": "I want to report issue"},
+            {"role": "assistant", "content": "{\n\"response\": \"Sure, I can help with that. Please provide me with the following details in the mentioned format:  \
+        <name>, <UID>, <description of issue>. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
+            {"role": "user", "content": "details: ak, 23, Want to raise a request for change of my last name"},
+            {"role": "assistant", "content": "{\n\"response\": \"{\n\"name\": \"ak\",\n\"UID\" : \"23\",\n\"description\": \"Want to raise a request for change of my last name\"\n}\",\n\"code\": \"1235\"\n}"}
+        ]
+        '''
+        
+        NOT_FOUND_RESPONSE = "I'm sorry, I don't have enough sources to answer that question. My role is to provide information related to University of Massachusetts, Lowell. Is there anything else I can help you with?"
+        
+        PROMPT_TEMPLATE = """
+        You are a AI chatbot. Your role is to build conversation with student and give good responses.
+        If you are not confident on any question. Let student know that you don't have that information.
+        Use the below context to complete the conversation. Strictly look for answer only in context
+        Try extracting maximum outcome from context
+        Context is the text between `````` below
+        context : ```{context}```
+        
+        To report an issue, request the student to provide information in the following format:
+        ##<name>, <UID>, <description of issue>##
+        For example:
+        ##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
+        If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
+        
+        Response formatting:
+        If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
+        else IF student provided all the details as mentioned in above example delimited by ##, then the <answer> must be {answer_} and attach code '1235'
+        else attach code `4321`
+        Format your responses as a JSON object in the following format:
+        {normal_response}
+        
+        Find example conversation below in between ###### as reference:
+        ###{chat_example}###
+        """
     
-    NOT_FOUND_RESPONSE = "I'm sorry, I don't have enough sources to answer that question. My role is to provide information related to University of Massachusetts, Lowell. Is there anything else I can help you with?"
+        answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
+        
+        normal_response = "{\n\"response\": <answer>,\n\"code\": <code>\n}"
+        
+        issue_response = "{\n\"response\": {\n\"name\": <name>,\n\"UID\": <UID>,\n\"description\": <description>\n},\n\"code\": \"1235\"\n}"
+        
+        vector_search = create_vector_search()
+        
+        model = ChatOpenAI()
+        q.append(query_text)
+        c[0]+=1
+        if c[0]==5:
+            q.pop(0)
+            c[0]-=1
+        
+        q_text = ' '.join(q)
     
-    PROMPT_TEMPLATE = """
-    You are a AI chatbot. Your role is to build conversation with student and give good responses.
-    If you are not confident on any question. Let student know that you don't have that information.
-    Use the below context to complete the conversation. Strictly look for answer only in context
-    Try extracting maximum outcome from context
-    Context is the text between `````` below
-    context : ```{context}```
+        results = vector_search.similarity_search_with_score(
+            query=q_text,
+            k=1,
+        )
+        
+        context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
+        # if len(results) == 0 or results[0][1] < 0.65:
+        #     context_text = ""
+            
+        prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        prompt = prompt_template.format(context=context_text, normal_response=normal_response, answer_=answer_, chat_example=chat_example)[8:]
+        print(prompt)
+        if messages == []:
+            messages.append({'role':'system', 'content':f"{prompt}"})
     
-    To report an issue, request the student to provide information in the following format:
-    ##<name>, <UID>, <description of issue>##
-    For example:
-    ##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
-    If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
+        messages[0]={'role':'system', 'content':f"{prompt}"}
+        messages.append({'role':'user', 'content':f"{query_text}"})
     
-    Response formatting:
-    If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
-    else IF student provided all the details as mentioned in above example delimited by ##, then the <answer> must be {answer_} and attach code '1235'
-    else attach code `4321`
-    Format your responses as a JSON object in the following format:
-    {normal_response}
+        try:
+            res1 = get_completion_from_messages(messages)
+            res = json.loads(res1)
+        except:
+            messages.pop(-1)
+            q.pop(-1)
+            return main(query_text)
+        
+        if res['code']=="4321":
+            #print('error....................')
+            res['response'] = NOT_FOUND_RESPONSE
+        if res['code']=="1235":
+            #print(res['response'])
+            res['response'] = "Case created with ID: 12345678" + res['response']
     
-    Find example conversation below in between ###### as reference:
-    ###{chat_example}###
-    """
-
-    answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
-    
-    normal_response = "{\n\"response\": <answer>,\n\"code\": <code>\n}"
-    
-    issue_response = "{\n\"response\": {\n\"name\": <name>,\n\"UID\": <UID>,\n\"description\": <description>\n},\n\"code\": \"1235\"\n}"
-    
+        response = res['response']
+        print(res)
+        res = json.dumps(res)
+        messages.append({'role':'assistant', 'content':f"{res}"})
+        return jsonify({'response': response})
     
     data = request.json
     query_text = data.get('query')
-    
-    vector_search = create_vector_search()
-    
-    model = ChatOpenAI()
-    q.append(query_text)
-    c[0]+=1
-    if c[0]==5:
-        q.pop(0)
-        c[0]-=1
-    
-    q_text = ' '.join(q)
-
-    results = vector_search.similarity_search_with_score(
-        query=q_text,
-        k=10,
-    )
-    
-    context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
-    # if len(results) == 0 or results[0][1] < 0.65:
-    #     context_text = ""
-        
-    prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-    prompt = prompt_template.format(context=context_text, normal_response=normal_response, answer_=answer_, chat_example=chat_example)[8:]
-    
-    if messages == []:
-        messages.append({'role':'system', 'content':f"{prompt}"})
-
-    messages[0]={'role':'system', 'content':f"{prompt}"}
-    messages.append({'role':'user', 'content':f"{query_text}"})
-
-    try:
-        res1 = get_completion_from_messages(messages)
-        res = json.loads(res1)
-    except:
-        messages.pop(-1)
-        q.pop(-1)
-        main(query_text)
-        return
-    
-    if res['code']=="4321":
-        #print('error....................')
-        res['response'] = NOT_FOUND_RESPONSE
-    if res['code']=="1235":
-        #print(res['response'])
-        res['response'] = "Case created with ID: 12345678" + res['response']
-
-    response = res['response']
-    res = json.dumps(res)
-    messages.append({'role':'assistant', 'content':f"{res}"})
-    return jsonify({'response': response})
+    return main(query_text)
 
 
 if __name__ == '__main__':
