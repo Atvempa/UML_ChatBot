@@ -19,51 +19,6 @@ nest_asyncio.apply()
 
 app = Flask(__name__)
 
-chat_example = '''
-[
-    {"role": "system", "content": "You are a helpful assistant designed to provide information related to the University of Massachusetts, Lowell."},
-    {"role": "user", "content": "Hi"},
-    {"role": "assistant", "content": "{\n\"response\": \"Hello! How can I assist you today?\",\n\"code\": \"1234\"\n}"},
-    {"role": "user", "content": "pantry?"},
-    {"role": "assistant", "content": "{\n\"response\": \"The main Strive Pantry is located at the Graduate Professional Studies Center! Visitors to the pantry should stop by the information desk on the first floor, where they will be greeted by staff and escorted to the pantry.\",\n\"code\": \"1234\"\n}"},
-    {"role": "user", "content": "timings?"},
-    {"role": "assistant", "content": "{\n\"response\": \"The pantry will re-open for the summer on Wednesday, May 29. The summer hours are: Mondays: 11 a.m. – 4:30 p.m., Wednesdays: 11:30 a.m. – 2:30 p.m., Fridays: 1–4 p.m.\",\n\"code\": \"1234\"\n}"},
-    {"role": "user", "content": "Capital of USA?"},
-    {"role": "assistant", "content": "{\n\"response\": \"I'm here to provide information specifically related to the University of Massachusetts, Lowell. Unfortunately, I do not have information on general knowledge questions. Is there anything else I can assist you with regarding UMass Lowell?\",\n\"code\": \"4321\"\n}"},
-    {"role": "user", "content": "I want to report issue"},
-    {"role": "assistant", "content": "{\n\"response\": \"Sure, I can help with that. Please provide me with the following details in the mentioned format:  \
-<name>, <UID>, <description of issue>. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
-    {"role": "user", "content": "details: ak, 23, Want to raise a request for change of my last name"},
-    {"role": "assistant", "content": "{\n\"response\": \"{\n\"name\": \"ak\",\n\"UID\" : \"23\",\n\"description\": \"Want to raise a request for change of my last name\"\n}\",\n\"code\": \"1235\"\n}"}
-]
-'''
-
-NOT_FOUND_RESPONSE = "I'm sorry, I don't have enough sources to answer that question. My role is to provide information related to University of Massachusetts, Lowell. Is there anything else I can help you with?"
-
-PROMPT_TEMPLATE = """
-You are a AI chatbot. Your role is to build conversation with student and give good responses.
-If you are not confident on any question. Let student know that you don't have that information.
-Use the below context to complete the conversation. Strictly look for answer only in context
-Try extracting maximum outcome from context
-Context is the text between `````` below
-context : ```{context}```
-
-To report an issue, request the student to provide information in the following format:
-##<name>, <UID>, <description of issue>##
-For example:
-##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
-If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
-
-Response formatting:
-If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
-else IF student provided all the details as mentioned in above example delimited by ##, then the <answer> must be {answer_} and attach code '1235'
-else attach code `4321`
-Format your responses as a JSON object in the following format:
-{normal_response}
-
-Find example conversation below in between ###### as reference:
-###{chat_example}###
-"""
 
 def get_completion_from_messages(messages, model="gpt-3.5-turbo", temperature=0):
     client = OpenAI(
@@ -96,6 +51,52 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+
+    chat_example = '''
+    [
+        {"role": "system", "content": "You are a helpful assistant designed to provide information related to the University of Massachusetts, Lowell."},
+        {"role": "user", "content": "Hi"},
+        {"role": "assistant", "content": "{\n\"response\": \"Hello! How can I assist you today?\",\n\"code\": \"1234\"\n}"},
+        {"role": "user", "content": "pantry?"},
+        {"role": "assistant", "content": "{\n\"response\": \"The main Strive Pantry is located at the Graduate Professional Studies Center! Visitors to the pantry should stop by the information desk on the first floor, where they will be greeted by staff and escorted to the pantry.\",\n\"code\": \"1234\"\n}"},
+        {"role": "user", "content": "timings?"},
+        {"role": "assistant", "content": "{\n\"response\": \"The pantry will re-open for the summer on Wednesday, May 29. The summer hours are: Mondays: 11 a.m. – 4:30 p.m., Wednesdays: 11:30 a.m. – 2:30 p.m., Fridays: 1–4 p.m.\",\n\"code\": \"1234\"\n}"},
+        {"role": "user", "content": "Capital of USA?"},
+        {"role": "assistant", "content": "{\n\"response\": \"I'm here to provide information specifically related to the University of Massachusetts, Lowell. Unfortunately, I do not have information on general knowledge questions. Is there anything else I can assist you with regarding UMass Lowell?\",\n\"code\": \"4321\"\n}"},
+        {"role": "user", "content": "I want to report issue"},
+        {"role": "assistant", "content": "{\n\"response\": \"Sure, I can help with that. Please provide me with the following details in the mentioned format:  \
+    <name>, <UID>, <description of issue>. Note: Order of details provided is important \",\n\"code\": \"1234\"\n}"},
+        {"role": "user", "content": "details: ak, 23, Want to raise a request for change of my last name"},
+        {"role": "assistant", "content": "{\n\"response\": \"{\n\"name\": \"ak\",\n\"UID\" : \"23\",\n\"description\": \"Want to raise a request for change of my last name\"\n}\",\n\"code\": \"1235\"\n}"}
+    ]
+    '''
+    
+    NOT_FOUND_RESPONSE = "I'm sorry, I don't have enough sources to answer that question. My role is to provide information related to University of Massachusetts, Lowell. Is there anything else I can help you with?"
+    
+    PROMPT_TEMPLATE = """
+    You are a AI chatbot. Your role is to build conversation with student and give good responses.
+    If you are not confident on any question. Let student know that you don't have that information.
+    Use the below context to complete the conversation. Strictly look for answer only in context
+    Try extracting maximum outcome from context
+    Context is the text between `````` below
+    context : ```{context}```
+    
+    To report an issue, request the student to provide information in the following format:
+    ##<name>, <UID>, <description of issue>##
+    For example:
+    ##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
+    If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
+    
+    Response formatting:
+    If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
+    else IF student provided all the details as mentioned in above example delimited by ##, then the <answer> must be {answer_} and attach code '1235'
+    else attach code `4321`
+    Format your responses as a JSON object in the following format:
+    {normal_response}
+    
+    Find example conversation below in between ###### as reference:
+    ###{chat_example}###
+    """
 
     answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
     
