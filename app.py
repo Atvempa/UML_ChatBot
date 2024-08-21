@@ -63,12 +63,8 @@ def chat():
         return vector_search
     
     vector_search = create_vector_search()
-    query = 'pantry'
     # Execute the similarity search with the given query
-    results = vector_search.similarity_search_with_score(
-        query=query,
-        k=3,
-    )
+    
     # query_text = results[0][0].page_content
     # # Create a new client and connect to the server
     # client = MongoClient(uri)
@@ -85,13 +81,13 @@ def chat():
     # #db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     model = ChatOpenAI()
-    # q.append(query_text)
-    # c[0]+=1
-    # if c[0]==5:
-    #     q.pop(0)
-    #     c[0]-=1
+    q.append(query_text)
+    c[0]+=1
+    if c[0]==5:
+        q.pop(0)
+        c[0]-=1
     
-    # q_text = ' '.join(q)
+    q_text = ' '.join(q)
 
     # # # Search the DB.
     # #results = db.similarity_search_with_relevance_scores(q_text, k=10)
@@ -102,6 +98,10 @@ def chat():
     #     index_name="vector_index"
     # )
     # results = vector_search.similarity_search_with_score(query=q_text, k=10)
+    results = vector_search.similarity_search_with_score(
+        query=query,
+        k=10,
+    )
     
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     # if len(results) == 0 or results[0][1] < 0.65:
