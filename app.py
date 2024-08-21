@@ -51,11 +51,11 @@ def chat():
     data = request.json
     query_text = data.get('query')
     
-    uri = "mongodb+srv://umlbot:Boston123@cluster0.mlwhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    #uri = "mongodb+srv://umlbot:Boston123@cluster0.mlwhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
     def create_vector_search():
         vector_search = MongoDBAtlasVectorSearch.from_connection_string(
-            uri,
+            mongo_uri,
             namespace="UML_ChatBot.demo-db",
             embedding= OpenAIEmbeddings(),
             index_name="vector_index"
