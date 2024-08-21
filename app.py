@@ -65,13 +65,6 @@ Find example conversation below in between ###### as reference:
 ###{chat_example}###
 """
 
-answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
-    
-normal_response = "{\n\"response\": <answer>,\n\"code\": <code>\n}"
-
-issue_response = "{\n\"response\": {\n\"name\": <name>,\n\"UID\": <UID>,\n\"description\": <description>\n},\n\"code\": \"1235\"\n}"
-
-
 def get_completion_from_messages(messages, model="gpt-3.5-turbo", temperature=0):
     client = OpenAI(
         api_key=openapi_key,
@@ -103,6 +96,13 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+
+    answer_ = "{\n'name': <name>,\n'UID' : <UID>,\n'description': <description>\n}"
+    
+    normal_response = "{\n\"response\": <answer>,\n\"code\": <code>\n}"
+    
+    issue_response = "{\n\"response\": {\n\"name\": <name>,\n\"UID\": <UID>,\n\"description\": <description>\n},\n\"code\": \"1235\"\n}"
+    
     
     data = request.json
     query_text = data.get('query')
