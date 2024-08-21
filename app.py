@@ -84,7 +84,7 @@ def chat():
     # embedding_function = OpenAIEmbeddings()
     # #db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
-    # model = ChatOpenAI()
+    model = ChatOpenAI()
     # q.append(query_text)
     # c[0]+=1
     # if c[0]==5:
