@@ -10,6 +10,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from pymongo.mongo_client import MongoClient
+from simple_salesforce import Salesforce
 
 
 openapi_key = os.getenv('OPENAI_API_KEY')
@@ -145,6 +146,23 @@ def chat():
             #print('error....................')
             res['response'] = NOT_FOUND_RESPONSE
         if res['code']=="1235":
+            sf_username = 'mail2kavyas-ba6c@force.com'
+            sf_password = 'London@123'
+            sf_security_token = 'HIayKseUIXggB6H3lYx0sBXZ'
+            
+            sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
+            
+            case_data = {
+                'Subject': 'Test21',
+                'Description': 'This is a test case created via the API.',
+                'Priority': 'Medium',
+                'Status': 'New'
+            }
+            
+            result = sf.Case.create(case_data)
+            print(result)
+            print(f"Case created with ID: {result['id']}")
+            # ---------------------------------------------------
             #print(res['response'])
             res['response'] = "Case created with ID: 12345678" + json.dumps(res['response'])
     
