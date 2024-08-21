@@ -155,7 +155,7 @@ def chat():
     response = res['response']
     res = json.dumps(res)
     messages.append({'role':'assistant', 'content':f"{res}"})
-    return jsonify({'response': res.content})
+    return jsonify({'response': response})
 
 
 if __name__ == '__main__':
