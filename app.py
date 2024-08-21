@@ -117,7 +117,7 @@ def chat():
     
         results = vector_search.similarity_search_with_score(
             query=q_text,
-            k=1,
+            k=10,
         )
         
         context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
