@@ -80,7 +80,7 @@ def chat():
         PROMPT_TEMPLATE = """
         You are a AI chatbot. Your role is to build conversation with student and give good responses.
         If you are not confident on any question. Let student know that you don't have that information.
-        Use the below context to complete the conversation. Strictly look for answer only in context
+        Use the below context to complete the conversation. Strictly frame the answer only using context
         Try extracting maximum outcome from context
         Context is the text between `````` below
         context : ```{context}```
@@ -140,36 +140,37 @@ def chat():
         try:
             res1 = get_completion_from_messages(messages)
             res = json.loads(res1)
+        
+            if res['code']=="4321":
+                #print('error....................')
+                res['response'] = NOT_FOUND_RESPONSE
+            if res['code']=="1235":
+                sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
+                print(res['response'])
+                uid = res['response']['UID']
+                query_contact= sf.query(f"SELECT Id from Contact where Student_Id__c = '{uid}'")
+    
+                if len(query_contact['records']) == 1:
+                    contact_id = query_contact['records'][0]['Id']
+                    print("Contact ID:", contact_id)
+                    case_data = {
+                    'Subject': 'Case from ChatBot',
+                    'Description': res['response']['description'],
+                    'Priority': 'Medium',
+                    'Status': 'New',
+                    'ContactId': contact_id
+                    }
+                    result = sf.Case.create(case_data)
+                    query_case = sf.query("SELECT Id, CaseNumber from Case")
+                    res['response'] = (f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
+                
+                else:
+                    res['response'] = "Invalid Student ID"
+
         except:
             messages.pop(-1)
             q.pop(-1)
             return main(query_text)
-        
-        if res['code']=="4321":
-            #print('error....................')
-            res['response'] = NOT_FOUND_RESPONSE
-        if res['code']=="1235":
-            sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
-            print(res['response'])
-            uid = res['response']['UID']
-            query_contact= sf.query(f"SELECT Id from Contact where Student_Id__c = '{uid}'")
-
-            if len(query_contact['records']) == 1:
-                contact_id = query_contact['records'][0]['Id']
-                print("Contact ID:", contact_id)
-                case_data = {
-                'Subject': 'Case from ChatBot',
-                'Description': res['response']['description'],
-                'Priority': 'Medium',
-                'Status': 'New',
-                'ContactId': contact_id
-                }
-                result = sf.Case.create(case_data)
-                query_case = sf.query("SELECT Id, CaseNumber from Case")
-                res['response'] = (f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
-            
-            else:
-                res['response'] = "Invalid Student ID"
             # ---------------------------------------------------
             #print(res['response'])
             
