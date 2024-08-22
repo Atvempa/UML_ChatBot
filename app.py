@@ -167,7 +167,8 @@ def chat():
                 else:
                     res['response'] = "Invalid Student ID"
 
-        except:
+        except e:
+            print(e)
             messages.pop(-1)
             q.pop(-1)
             return main(query_text)
