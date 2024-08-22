@@ -171,7 +171,7 @@ def chat():
             #     print("No contact found or more than one contact found.")
             # ---------------------------------------------------
             #print(res['response'])
-            res['response'] = "Case created with ID: 12345678 " + uid)
+            res['response'] = "Case created with ID: 12345678 " + uid
     
         response = res['response']
         #print(res)
