@@ -15,6 +15,9 @@ from simple_salesforce import Salesforce
 
 openapi_key = os.getenv('OPENAI_API_KEY')
 mongo_uri = os.getenv('MONGO_URI')
+sf_username = os.getenv('SF_USERNAME')
+sf_password = os.getenv('SF_PASSWORD')
+sf_security_token = os.getenv('SF_SECURITY_TOKEN')
 
 nest_asyncio.apply()
 
@@ -146,25 +149,29 @@ def chat():
             #print('error....................')
             res['response'] = NOT_FOUND_RESPONSE
         if res['code']=="1235":
-            sf_username = 'mail2kavyas-ba6c@force.com'
-            sf_password = 'London@123'
-            sf_security_token = 'HIayKseUIXggB6H3lYx0sBXZ'
-            
             sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
+            uid = res['response']['UID']
+            # query_contact= sf.query("SELECT Id from Contact where Student_Id__c = '02147349'")
+
+            # if len(query_contact['records']) == 1:
+            #     contact_id = query_contact['records'][0]['Id']
+            #     print("Contact ID:", contact_id)
+            #     case_data = {
+            #     'Subject': 'Case from ChatBot',
+            #     'Description': 'This is a test case created via the API.',
+            #     'Priority': 'Medium',
+            #     'Status': 'New',
+            #     'ContactId': contact_id
+            #     }
+            #     result = sf.Case.create(case_data)
+            #     query_case = sf.query("SELECT Id, CaseNumber from Case")
+            #     print(f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
             
-            case_data = {
-                'Subject': 'Test21',
-                'Description': 'This is a test case created via the API.',
-                'Priority': 'Medium',
-                'Status': 'New'
-            }
-            
-            result = sf.Case.create(case_data)
-            print(result)
-            print(f"Case created with ID: {result['id']}")
+            # else:
+            #     print("No contact found or more than one contact found.")
             # ---------------------------------------------------
             #print(res['response'])
-            res['response'] = "Case created with ID: 12345678" + json.dumps(res['response'])
+            res['response'] = "Case created with ID: 12345678 " + uid)
     
         response = res['response']
         #print(res)
