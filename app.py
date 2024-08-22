@@ -151,27 +151,27 @@ def chat():
         if res['code']=="1235":
             sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
             uid = res['response']['UID']
-            # query_contact= sf.query("SELECT Id from Contact where Student_Id__c = '02147349'")
+            query_contact= sf.query(f"SELECT Id from Contact where Student_Id__c = '{uid}'")
 
-            # if len(query_contact['records']) == 1:
-            #     contact_id = query_contact['records'][0]['Id']
-            #     print("Contact ID:", contact_id)
-            #     case_data = {
-            #     'Subject': 'Case from ChatBot',
-            #     'Description': 'This is a test case created via the API.',
-            #     'Priority': 'Medium',
-            #     'Status': 'New',
-            #     'ContactId': contact_id
-            #     }
-            #     result = sf.Case.create(case_data)
-            #     query_case = sf.query("SELECT Id, CaseNumber from Case")
-            #     print(f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
+            if len(query_contact['records']) == 1:
+                contact_id = query_contact['records'][0]['Id']
+                print("Contact ID:", contact_id)
+                case_data = {
+                'Subject': 'Case from ChatBot',
+                'Description': res['response']['description'],
+                'Priority': 'Medium',
+                'Status': 'New',
+                'ContactId': contact_id
+                }
+                result = sf.Case.create(case_data)
+                query_case = sf.query("SELECT Id, CaseNumber from Case")
+                res['response'] = (f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
             
-            # else:
-            #     print("No contact found or more than one contact found.")
+            else:
+                res['response'] = "Invalid Student ID"
             # ---------------------------------------------------
             #print(res['response'])
-            res['response'] = "Case created with ID: 12345678 " + uid
+            
     
         response = res['response']
         #print(res)
