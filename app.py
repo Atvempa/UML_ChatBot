@@ -150,6 +150,7 @@ def chat():
             res['response'] = NOT_FOUND_RESPONSE
         if res['code']=="1235":
             sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
+            print(res['response'])
             uid = res['response']['UID']
             query_contact= sf.query(f"SELECT Id from Contact where Student_Id__c = '{uid}'")
 
