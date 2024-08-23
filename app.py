@@ -147,7 +147,7 @@ def chat():
                 res['response'] = NOT_FOUND_RESPONSE
             if res['code']=="1235":
                 sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
-                print(res['response'])
+                print('hello123 ',res['response'])
                 uid = res['response']['UID']
                 query_contact= sf.query(f"SELECT Id from Contact where Student_Id__c = '{uid}'")
     
@@ -178,7 +178,7 @@ def chat():
             
     
         response = res['response']
-        print(res)
+        print('hi ',res)
         res = json.dumps(res)
         messages.append({'role':'assistant', 'content':f"{res}"})
         return jsonify({'response': response})
