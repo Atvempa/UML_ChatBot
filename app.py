@@ -157,7 +157,7 @@ def chat():
                     contact_id = query_contact['records'][0]['Id']
                     print("Contact ID:", contact_id)
                     case_data = {
-                    'Subject': 'Case from ChatBot',
+                    'Subject': res['response']['description'],
                     'Description': res['response']['description'],
                     'Priority': 'Medium',
                     'Status': 'New',
