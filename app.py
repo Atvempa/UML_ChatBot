@@ -80,7 +80,7 @@ def chat():
         PROMPT_TEMPLATE = """
         You are a AI chatbot. Your role is to build conversation with student and give good responses.
         If you are not confident on any question. Let student know that you don't have that information.
-        Use the below context to complete the conversation. Strictly frame the answer only using context
+        Use the below context to complete the conversation. Strictly look for answer only in context
         Try extracting maximum outcome from context
         Context is the text between `````` below
         context : ```{context}```
