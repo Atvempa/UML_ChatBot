@@ -170,6 +170,7 @@ def chat():
                 else:
                     messages.pop(-1)
                     return_ans = "Invalid Student ID"
+                    return jsonify({'response': return_ans})
 
         except:
             messages.pop(-1)
