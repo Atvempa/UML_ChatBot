@@ -90,7 +90,6 @@ def chat():
         For example:
         ##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
         If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
-        If student provided all the details, then don't search for answer in context. Directly frame <answer> as {answer_}.
         
         Response formatting:
         If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
@@ -166,7 +165,8 @@ def chat():
                     res['response'] = (f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
                 
                 else:
-                    res['response'] = "Invalid Student ID"
+                    messages.pop(-1)
+                    return jsonify({'response': "Invalid Student ID"})
 
         except e:
             print(e)
