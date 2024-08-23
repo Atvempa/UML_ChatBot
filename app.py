@@ -90,6 +90,7 @@ def chat():
         For example:
         ##'Jane Smith, 789012, I’m unable to access my course materials on the portal.'##
         If any details are missing, request the additional information from the student. Above provided all 3 details are mandatory.
+        If student provided all the details, then don't search for answer in context.
         
         Response formatting:
         If answer is taken from context or student stating issue or student provided only partial details attach code `1234` to every assistant message
