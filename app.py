@@ -56,6 +56,7 @@ def index():
 @app.route('/chat', methods=['POST'])
 def chat():
     def main(query_text):
+        flag1235 = 0
         chat_example = '''
         [
             {"role": "system", "content": "You are a helpful assistant designed to provide information related to the University of Massachusetts, Lowell."},
@@ -146,6 +147,7 @@ def chat():
                 #print('error....................')
                 res['response'] = NOT_FOUND_RESPONSE
             if res['code']=="1235":
+                flag1235 = 1
                 sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_security_token)
                 print('hello123 ',res['response'])
                 uid = res['response']['UID']
@@ -163,11 +165,11 @@ def chat():
                     }
                     result = sf.Case.create(case_data)
                     query_case = sf.query("SELECT Id, CaseNumber from Case")
-                    res['response'] = (f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
+                    return_ans = (f"Case created with ID: {result['id']} and Case Number: {query_case['records'][0]['CaseNumber']}")
                 
                 else:
                     messages.pop(-1)
-                    return jsonify({'response': "Invalid Student ID"})
+                    return_ans = "Invalid Student ID"
 
         except:
             messages.pop(-1)
@@ -181,6 +183,8 @@ def chat():
         print('hi ',res)
         res = json.dumps(res)
         messages.append({'role':'assistant', 'content':f"{res}"})
+        if flag1235 == 1:
+            return jsonify({'response': return_ans})
         return jsonify({'response': response})
     
     data = request.json
