@@ -152,7 +152,8 @@ def chat():
                 print('hello123 ',res['response'])
                 uid = res['response']['UID']
                 query_contact= sf.query(f"SELECT Id from Contact where Student_Id__c = '{uid}'")
-    
+
+                print('testing Kavya',query_contact)
                 if len(query_contact['records']) == 1:
                     contact_id = query_contact['records'][0]['Id']
                     print("Contact ID:", contact_id)
